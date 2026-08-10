@@ -82,10 +82,10 @@ JSON Response
       │
       ▼
 Export CSV
-
 ```
 
 ---
+
 ## Installation
 
 ```bash
@@ -173,11 +173,5 @@ The application generates an `output.csv` file containing:
 ---
 
 ## License
-
-MIT License
-Streamlit dashboard
-Docker support
-Database integration
-License
 
 MIT License
