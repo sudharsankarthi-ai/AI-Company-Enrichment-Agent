@@ -1,9 +1,6 @@
 # AI Company Enrichment Agent
 
-![Python](https://img.shields.io/badge/Python-3.13-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
 
-&nbsp;
 
 ## Overview
 
@@ -50,79 +47,57 @@ The enriched information is exported into a structured CSV file.
 
 ## Project Workflow
 
-
+```text
 CSV Input
-│
-▼
+      │
+      ▼
 Load Company Data
-│
-▼
+      │
+      ▼
 Build AI Prompt
-│
-▼
+      │
+      ▼
 Groq API
-│
-▼
+      │
+      ▼
 Parse JSON
-│
-▼
+      │
+      ▼
 Company Enrichment
-│
-▼
+      │
+      ▼
 Export CSV
-
-
----
-
-## Installation
-
-
+Installation
 git clone https://github.com/sudharsankarthi-ai/AI-Company-Enrichment-Agent.git
 
 cd AI-Company-Enrichment-Agent
 
 pip install -r requirements.txt
 
-
-Create a `.env` file
-
+Create a .env file
 
 GROQ_API_KEY=YOUR_API_KEY
 
-
 Run
 
-
 python app.py
-
-
----
-
-## Skills Demonstrated
-
-- Python Development
-- Prompt Engineering
-- Groq API Integration
-- LLM Integration
-- JSON Parsing
-- CSV Processing
-- Data Enrichment
-- Automation Workflows
-- Error Handling
-
----
-
-## Future Improvements
-
-- Batch processing
-- Retry logic
-- Multi-agent architecture
-- Advanced company relationship detection
-- Streamlit dashboard
-- Docker support
-
----
-
-## License
+Skills Demonstrated
+Python Development
+Prompt Engineering
+Groq API Integration
+LLM Integration
+JSON Parsing
+CSV Processing
+Data Enrichment
+Automation Workflows
+Error Handling
+Future Improvements
+Batch processing
+Retry logic
+Multi-agent architecture
+Advanced company relationship detection
+Streamlit dashboard
+Docker support
+License
 
 MIT License
