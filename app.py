@@ -5,7 +5,7 @@ Author: Sudharsan K
 
 Description:
 An AI-powered automation tool that validates company-domain relationships
-and enriches company datasets using Google's Gemini API.
+and enriches company datasets using Groq API.
 """
 
 import json
@@ -13,8 +13,7 @@ import os
 
 import pandas as pd
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+from groq import Groq
 
 
 # =====================================================
@@ -23,24 +22,27 @@ from google.genai import types
 
 INPUT_FILE = "sample_input.csv"
 OUTPUT_FILE = "output.csv"
-MODEL_NAME = "gemini-2.5-flash"
+
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 # =====================================================
-# Initialize Gemini Client
+# Initialize Groq Client
 # =====================================================
 
 def initialize_client():
-    """Load environment variables and create a Gemini client."""
+    """Load environment variables and create a Groq client."""
 
     load_dotenv()
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
 
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found in .env file.")
+        raise ValueError(
+            "GROQ_API_KEY not found in .env file."
+        )
 
-    return genai.Client(api_key=api_key)
+    return Groq(api_key=api_key)
 
 
 # =====================================================
@@ -48,10 +50,13 @@ def initialize_client():
 # =====================================================
 
 def build_prompt(company_name: str, domain: str) -> str:
-    """Create the prompt sent to Gemini."""
+    """Create the prompt sent to Groq."""
 
     return f"""
 You are an AI Company Enrichment Agent.
+
+Your job is to research and validate the relationship between
+a company name and a website/domain.
 
 Company Name:
 {company_name}
@@ -59,23 +64,77 @@ Company Name:
 Website / Domain:
 {domain}
 
-Your tasks:
+Perform the following tasks:
 
-1. Verify whether the company name and domain belong to the same organization.
+1. Determine whether the company name and website/domain
+   belong to the same organization.
 
-2. Identify:
-- Official company name
-- Official LinkedIn company page
-- CEO
-- Founder
+2. Identify the official current company name.
 
-3. Assign a confidence score between 0 and 1.
+3. Check whether the company has changed its name due to:
 
-Return ONLY valid JSON in this format:
+   - acquisition
+   - merger
+   - rebranding
+   - corporate restructuring
+   - change from an old company name to a new company name
+
+4. If the company name has changed:
+
+   - Set "company_name_changed" to true.
+   - Identify the previous company name if possible.
+   - Explain the reason for the name change.
+
+5. Identify:
+
+   - Official LinkedIn company page
+   - Current CEO
+   - Founder(s)
+
+6. Assign a confidence score between 0 and 1.
+
+IMPORTANT:
+
+- Do not assume that different names automatically mean
+  different companies.
+
+- A company may have changed its name after an acquisition,
+  merger, rebranding, or restructuring.
+
+- If the input company name is an old name but the website
+  belongs to the same organization under its new name,
+  mark "same_company" as true.
+
+- A website may represent a product, brand, or service
+  owned by a parent company.
+
+- If the input name is a product or brand and the provided
+  domain belongs to its parent company, identify the parent
+  company as the official company.
+
+- Do not mark the company as unrelated simply because the
+  input name and official company name are different.
+
+- Do not confuse a product/brand relationship with a
+  company name change.
+
+- If you cannot establish that the two names belong to the
+  same organization, mark "same_company" as false.
+
+- Do not invent information.
+
+- If information is unavailable, return an empty string.
+
+- Return ONLY valid JSON.
+
+Return exactly this structure:
 
 {{
     "same_company": true,
     "official_company_name": "",
+    "company_name_changed": false,
+    "previous_company_name": "",
+    "name_change_reason": "",
     "linkedin": "",
     "ceo": "",
     "founder": "",
@@ -89,7 +148,7 @@ Return ONLY valid JSON in this format:
 # =====================================================
 
 def clean_json_response(response_text: str) -> dict:
-    """Clean Gemini response and convert it into a Python dictionary."""
+    """Clean Groq response and convert it into a Python dictionary."""
 
     text = response_text.strip()
 
@@ -109,20 +168,43 @@ def clean_json_response(response_text: str) -> dict:
 # Company Research
 # =====================================================
 
-def enrich_company(client, company_name: str, domain: str) -> dict:
-    """Research a single company using Gemini."""
+def enrich_company(
+    client,
+    company_name: str,
+    domain: str
+) -> dict:
+    """Research a single company using Groq."""
 
-    prompt = build_prompt(company_name, domain)
-
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json"
-        ),
+    prompt = build_prompt(
+        company_name,
+        domain
     )
 
-    return clean_json_response(response.text)
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a highly accurate company research "
+                    "and enrichment assistant. "
+                    "Return only valid JSON."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0,
+        response_format={
+            "type": "json_object"
+        }
+    )
+
+    response_text = response.choices[0].message.content
+
+    return clean_json_response(response_text)
 
 
 # =====================================================
@@ -156,25 +238,61 @@ def main():
                 {
                     "Input Company": company_name,
                     "Input Domain": domain,
-                    "Same Company": company_data.get("same_company"),
+
+                    "Same Company": company_data.get(
+                        "same_company"
+                    ),
+
                     "Official Company Name": company_data.get(
                         "official_company_name"
                     ),
-                    "LinkedIn": company_data.get("linkedin"),
-                    "CEO": company_data.get("ceo"),
-                    "Founder": company_data.get("founder"),
-                    "Confidence": company_data.get("confidence"),
+
+                    "Company Name Changed": company_data.get(
+                        "company_name_changed"
+                    ),
+
+                    "Previous Company Name": company_data.get(
+                        "previous_company_name"
+                    ),
+
+                    "Name Change Reason": company_data.get(
+                        "name_change_reason"
+                    ),
+
+                    "LinkedIn": company_data.get(
+                        "linkedin"
+                    ),
+
+                    "CEO": company_data.get(
+                        "ceo"
+                    ),
+
+                    "Founder": company_data.get(
+                        "founder"
+                    ),
+
+                    "Confidence": company_data.get(
+                        "confidence"
+                    ),
                 }
             )
 
         except Exception as error:
 
-            print(f"Failed to process '{company_name}'")
+            print(
+                f"Failed to process '{company_name}'"
+            )
+
             print(error)
 
-    output_df = pd.DataFrame(enriched_companies)
+    output_df = pd.DataFrame(
+        enriched_companies
+    )
 
-    output_df.to_csv(OUTPUT_FILE, index=False)
+    output_df.to_csv(
+        OUTPUT_FILE,
+        index=False
+    )
 
     print("\n====================================")
     print("Company enrichment completed.")
