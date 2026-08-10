@@ -1,7 +1,5 @@
 # AI Company Enrichment Agent
 
-
-
 ## Overview
 
 AI Company Enrichment Agent is an AI-powered Python application that automates company research and data enrichment using web search and large language models.
@@ -55,7 +53,6 @@ The enriched information is exported into a structured CSV file.
 
 ## Project Workflow
 
-```text
 CSV Input
       │
       ▼
@@ -84,66 +81,4 @@ JSON Response
       │
       ▼
 Export CSV
-Installation
-git clone https://github.com/sudharsankarthi-ai/AI-Company-Enrichment-Agent.git
 
-cd AI-Company-Enrichment-Agent
-
-pip install -r requirements.txt
-
-Create a .env file:
-
-GROQ_API_KEY=YOUR_API_KEY
-TAVILY_API_KEY=YOUR_API_KEY
-
-Run:
-
-python app.py
-Input Format
-
-The application accepts a CSV file with the following columns:
-
-Company,Domain
-Google,https://www.google.com
-Facebook,https://www.facebook.com
-ChatGPT,https://chatgpt.com
-Output
-
-The application generates an output.csv file containing:
-
-Input Company
-Input Domain
-Same Company
-Official Company Name
-Company Name Changed
-Previous Company Name
-Name Change Reason
-LinkedIn
-CEO
-Founder
-Confidence
-Skills Demonstrated
-Python Development
-Prompt Engineering
-LLM Integration
-Groq API Integration
-Web Research Automation
-Tavily API Integration
-Company Data Enrichment
-JSON Parsing
-CSV Processing
-Data Validation
-Automation Workflows
-Error Handling
-Future Improvements
-Batch processing
-Retry logic
-Rate-limit handling
-Source verification
-Multi-agent architecture
-Streamlit dashboard
-Docker support
-Database integration
-License
-
-MIT License
