@@ -4,7 +4,7 @@ AI Company Enrichment Agent
 Author: Sudharsan K
 
 Description:
-An AI-powered automation tool that validates company-domain relationships,
+An AI-powered Python application that validates company-domain relationships,
 researches companies using web search, and enriches company datasets
 using Groq API.
 """
@@ -27,7 +27,10 @@ OUTPUT_FILE = "output.csv"
 
 MODEL_NAME = "llama-3.3-70b-versatile"
 
-MAX_SEARCH_RESULTS = 5
+# Keep the research context small enough for Groq limits.
+MAX_SEARCH_RESULTS = 3
+MAX_RESEARCH_SOURCES = 6
+MAX_CONTENT_LENGTH = 800
 
 
 # =====================================================
@@ -91,7 +94,9 @@ def search_company(
 
     for query in queries:
 
-        print(f"  Web search: {query}")
+        print(
+            f'Web search: {query}'
+        )
 
         try:
 
@@ -129,7 +134,7 @@ def search_company(
         except Exception as error:
 
             print(
-                f"  Search failed: {error}"
+                f"Web search failed: {error}"
             )
 
     return search_results
@@ -143,23 +148,45 @@ def build_research_context(
     search_results: list
 ) -> str:
     """
-    Convert web search results into context
-    that can be provided to Groq.
+    Convert web search results into a compact research
+    context for Groq to reduce token usage.
     """
 
     if not search_results:
-        return "No web research results were found."
+        return (
+            "No web research results were found."
+        )
 
     context_parts = []
 
-    for index, result in enumerate(
-        search_results,
-        start=1
-    ):
+    seen_urls = set()
+
+    for result in search_results:
+
+        url = result.get(
+            "url",
+            ""
+        ).strip()
+
+        # Skip duplicate URLs
+        if not url or url in seen_urls:
+            continue
+
+        seen_urls.add(url)
+
+        content = result.get(
+            "content",
+            ""
+        ).strip()
+
+        # Limit content size
+        content = content[
+            :MAX_CONTENT_LENGTH
+        ]
 
         context_parts.append(
             f"""
-SOURCE {index}
+SOURCE {len(context_parts) + 1}
 
 Search Query:
 {result.get("query", "")}
@@ -168,14 +195,25 @@ Title:
 {result.get("title", "")}
 
 URL:
-{result.get("url", "")}
+{url}
 
 Content:
-{result.get("content", "")}
+{content}
 """
         )
 
-    return "\n".join(context_parts)
+        # Limit number of sources
+        if len(context_parts) >= MAX_RESEARCH_SOURCES:
+            break
+
+    if not context_parts:
+        return (
+            "No useful web research results were found."
+        )
+
+    return "\n".join(
+        context_parts
+    )
 
 
 # =====================================================
@@ -217,7 +255,6 @@ TASK 1 — COMPANY IDENTITY
 
 Determine the relationship between the input company name
 and the website/domain.
-
 
 IMPORTANT RULE FOR SAME COMPANY:
 
@@ -512,7 +549,9 @@ def enrich_company(
 ) -> dict:
     """Research and enrich a single company."""
 
-    print("  Starting web research...")
+    print(
+        "Starting web research..."
+    )
 
     search_results = search_company(
         tavily_client,
@@ -521,20 +560,24 @@ def enrich_company(
     )
 
     print(
-        f"  Sources found: {len(search_results)}"
+        f"Sources found: {len(search_results)}"
     )
 
     research_context = build_research_context(
         search_results
     )
 
+    print(
+        "Sending research to Groq..."
+    )
+
+    # Build the final prompt using the compact
+    # research context.
     prompt = build_prompt(
         company_name,
         domain,
         research_context
     )
-
-    print("  Sending research to Groq...")
 
     response = groq_client.chat.completions.create(
         model=MODEL_NAME,
@@ -662,18 +705,18 @@ def main():
             )
 
             print(
-                "  Enrichment completed."
+                "Enrichment completed."
             )
 
         except Exception as error:
 
             print(
-                f"  Failed to process "
+                f"Failed to process "
                 f"'{company_name}'"
             )
 
             print(
-                f"  Error: {error}"
+                f"Error: {error}"
             )
 
     output_df = pd.DataFrame(
@@ -686,7 +729,9 @@ def main():
     )
 
     print("\n====================================")
-    print("Company enrichment completed.")
+    print(
+        "Company enrichment completed."
+    )
     print(
         f"Results saved to '{OUTPUT_FILE}'."
     )
