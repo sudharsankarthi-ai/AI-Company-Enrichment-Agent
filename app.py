@@ -58,74 +58,180 @@ You are an AI Company Enrichment Agent.
 Your job is to research and validate the relationship between
 a company name and a website/domain.
 
-Company Name:
+Input Company Name:
 {company_name}
 
 Website / Domain:
 {domain}
 
-Perform the following tasks:
 
-1. Determine whether the company name and website/domain
-   belong to the same organization.
+1. Determine the relationship between the input company name
+and the website/domain.
+
+IMPORTANT RULE FOR SAME COMPANY:
+
+"same_company" refers to corporate identity, not ownership.
+
+Set "same_company" to TRUE when:
+
+- The input company and the company represented by the domain
+  are the same corporate entity.
+- The input company was officially renamed and the domain
+  now represents the renamed company.
+- The input company has a different legal name but is still
+  the same corporate organization.
+
+Set "same_company" to FALSE when:
+
+- The input is a product, brand, or service owned by another
+  company.
+- The input is a subsidiary and the domain represents the
+  parent company.
+- The input is a brand operated by another company.
+- The input and domain represent genuinely different
+  organizations.
+
 
 2. Identify the official current company name.
 
-3. Check whether the company has changed its name due to:
 
-   - acquisition
-   - merger
-   - rebranding
-   - corporate restructuring
-   - change from an old company name to a new company name
+3. Determine whether the INPUT COMPANY ITSELF has changed
+its company/corporate name.
 
-4. If the company name has changed:
+IMPORTANT RULE FOR COMPANY NAME CHANGES:
 
-   - Set "company_name_changed" to true.
-   - Identify the previous company name if possible.
-   - Explain the reason for the name change.
+Only set "company_name_changed" to TRUE when the company
+provided in the INPUT COMPANY field has actually changed
+its company/corporate name.
+
+A different official company name does NOT automatically
+mean that the company name changed.
+
+If the input company was officially renamed into the current
+company, then:
+
+- same_company = TRUE
+- company_name_changed = TRUE
+
+If the input is simply a product, brand, subsidiary, or
+service of another company, then:
+
+- same_company = FALSE
+- company_name_changed = FALSE
+
+
+Examples:
+
+Google → Google LLC
+
+same_company = true
+company_name_changed = false
+
+
+Facebook → Meta Platforms, Inc.
+
+same_company = true
+company_name_changed = true
+
+
+Twitter → X Corp.
+
+same_company = true
+company_name_changed = true
+
+
+ChatGPT → OpenAI
+
+same_company = false
+company_name_changed = false
+
+Reason:
+ChatGPT is a product/service operated by OpenAI and was
+not the previous corporate name of OpenAI.
+
+
+WhatsApp → Meta Platforms, Inc.
+
+same_company = false
+company_name_changed = false
+
+Reason:
+WhatsApp is a company/product owned by Meta and was not
+the previous corporate name of Meta.
+
+
+Instagram → Meta Platforms, Inc.
+
+same_company = false
+company_name_changed = false
+
+Reason:
+Instagram is a brand/company owned by Meta and was not
+the previous corporate name of Meta.
+
+
+If the difference between the input company name and
+official company name is caused by:
+
+- product relationship
+- brand relationship
+- parent company
+- subsidiary
+- ownership
+- acquisition where the acquired company retained its
+  own corporate identity
+
+DO NOT classify it as a company name change unless the
+input company itself was officially renamed.
+
+
+4. If the INPUT COMPANY was actually renamed:
+
+- Set "same_company" to true.
+- Set "company_name_changed" to true.
+- Set "previous_company_name" to the input company name
+  or its recognized previous corporate name.
+- Explain the actual reason for the name change.
+
 
 5. Identify:
 
-   - Official LinkedIn company page
-   - Current CEO
-   - Founder(s)
+- Official LinkedIn company page
+- Current CEO
+- Founder(s)
+
 
 6. Assign a confidence score between 0 and 1.
+
 
 IMPORTANT:
 
 - Do not assume that different names automatically mean
   different companies.
 
-- A company may have changed its name after an acquisition,
-  merger, rebranding, or restructuring.
+- Do not assume that different names automatically mean
+  a company name change.
 
-- If the input company name is an old name but the website
-  belongs to the same organization under its new name,
-  mark "same_company" as true.
+- A renamed company remains the same company for this
+  analysis.
 
-- A website may represent a product, brand, or service
-  owned by a parent company.
+- If company_name_changed is true because the input company
+  was officially renamed, same_company must also be true.
 
-- If the input name is a product or brand and the provided
-  domain belongs to its parent company, identify the parent
-  company as the official company.
+- Products and brands are NOT automatically the same company
+  as their parent company.
 
-- Do not mark the company as unrelated simply because the
-  input name and official company name are different.
+- Parent companies and subsidiaries are NOT automatically
+  the same company.
 
-- Do not confuse a product/brand relationship with a
-  company name change.
-
-- If you cannot establish that the two names belong to the
-  same organization, mark "same_company" as false.
+- Ownership does not mean corporate identity is the same.
 
 - Do not invent information.
 
 - If information is unavailable, return an empty string.
 
 - Return ONLY valid JSON.
+
 
 Return exactly this structure:
 
@@ -188,6 +294,9 @@ def enrich_company(
                 "content": (
                     "You are a highly accurate company research "
                     "and enrichment assistant. "
+                    "Carefully distinguish corporate identity, "
+                    "company renaming, products, brands, "
+                    "subsidiaries, and parent companies. "
                     "Return only valid JSON."
                 )
             },

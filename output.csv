@@ -1,4 +1,4 @@
-Input Company,Input Domain,Same Company,Official Company Name,LinkedIn,CEO,Founder,Confidence
-google,https://www.google.com/,True,Google LLC,https://www.linkedin.com/company/google/,Sundar Pichai,"Larry Page, Sergey Brin",1.0
-facebook,https://www.facebook.com/,True,"Meta Platforms, Inc.",https://www.linkedin.com/company/meta/,Mark Zuckerberg,Mark Zuckerberg,1.0
-chatgbt,https://chatgpt.com/,False,OpenAI,https://www.linkedin.com/company/openai/,Sam Altman,Sam Altman,0.9
+Input Company,Input Domain,Same Company,Official Company Name,Company Name Changed,Previous Company Name,Name Change Reason,LinkedIn,CEO,Founder,Confidence
+google,https://www.google.com/,True,Google LLC,False,,,https://www.linkedin.com/company/google/,Sundar Pichai,"Larry Page, Sergey Brin",0.99
+facebook,https://www.facebook.com/,True,"Meta Platforms, Inc.",True,"Facebook, Inc.","The company was officially renamed from Facebook, Inc. to Meta Platforms, Inc. in 2021 to reflect its expanded scope beyond social media.",https://www.linkedin.com/company/meta/,Mark Zuckerberg,"Mark Zuckerberg, Andrew McCollum, Dustin Moskovitz, Chris Hughes, Eduardo Saverin",0.99
+chatgpt,https://chatgpt.com/,False,OpenAI,False,,,https://www.linkedin.com/company/openai/,Sam Altman,"Ilya Sutskever, John Schulman, Greg Brockman, Wojciech Zaremba",0.9
