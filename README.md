@@ -4,18 +4,20 @@
 
 ## Overview
 
-AI Company Enrichment Agent is an AI-powered Python application that automates company research using the Groq API.
+AI Company Enrichment Agent is an AI-powered Python application that automates company research and data enrichment using web search and large language models.
 
-The application validates company-domain relationships and enriches datasets by identifying:
+The application validates company-domain relationships, researches companies using web sources, and enriches datasets by identifying:
 
 - Official company name
 - Company name changes
 - Previous company name
 - Reason for name change
-- LinkedIn company page
-- CEO
-- Founder
+- Official LinkedIn company page
+- Current CEO
+- Founder(s)
 - Confidence score
+
+Web research is performed using Tavily, while Groq's Llama 3.3 70B model processes, validates, and structures the collected information.
 
 The enriched information is exported into a structured CSV file.
 
@@ -25,13 +27,18 @@ The enriched information is exported into a structured CSV file.
 
 - Reads company data from CSV
 - Validates company-domain relationships
+- Performs live web research
+- Identifies official company names
 - Detects actual company name changes
 - Identifies previous company names
 - Provides name change reasons
-- Retrieves LinkedIn company pages
-- Finds CEO and Founder
+- Finds official LinkedIn company pages
+- Identifies current CEO
+- Identifies company founders
 - Uses structured JSON responses
+- Assigns confidence scores
 - Exports enriched CSV reports
+- Handles unavailable information without inventing data
 
 ---
 
@@ -40,6 +47,7 @@ The enriched information is exported into a structured CSV file.
 - Python
 - Groq API
 - Llama 3.3 70B
+- Tavily Search API
 - Pandas
 - Python Dotenv
 
@@ -54,50 +62,25 @@ CSV Input
 Load Company Data
       │
       ▼
-Build AI Prompt
+Web Research
+      │
+      ├── Company Information
+      ├── LinkedIn
+      ├── CEO
+      ├── Founder
+      └── Company History
       │
       ▼
-Groq API
+Build Research Context
       │
       ▼
-Parse JSON
+Groq / Llama 3.3 70B
       │
       ▼
-Company Enrichment
+Validate & Structure Data
+      │
+      ▼
+JSON Response
       │
       ▼
 Export CSV
-Installation
-git clone https://github.com/sudharsankarthi-ai/AI-Company-Enrichment-Agent.git
-
-cd AI-Company-Enrichment-Agent
-
-pip install -r requirements.txt
-
-Create a .env file
-
-GROQ_API_KEY=YOUR_API_KEY
-
-Run
-
-python app.py
-Skills Demonstrated
-Python Development
-Prompt Engineering
-Groq API Integration
-LLM Integration
-JSON Parsing
-CSV Processing
-Data Enrichment
-Automation Workflows
-Error Handling
-Future Improvements
-Batch processing
-Retry logic
-Multi-agent architecture
-Advanced company relationship detection
-Streamlit dashboard
-Docker support
-License
-
-MIT License
